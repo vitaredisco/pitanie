@@ -227,6 +227,19 @@ function stopCam() {
 }
 function closeCam() { stopCam(); document.getElementById('camModal').classList.add('hidden'); camMode = null; }
 
+// Сканер с усиленными настройками: «стараться сильнее» + только продуктовые
+// форматы (меньше ложных попыток → быстрее и надёжнее ловит).
+function makeBarcodeReader() {
+  const hints = new Map();
+  hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+  hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
+    ZXing.BarcodeFormat.EAN_13, ZXing.BarcodeFormat.EAN_8,
+    ZXing.BarcodeFormat.UPC_A, ZXing.BarcodeFormat.UPC_E,
+    ZXing.BarcodeFormat.CODE_128, ZXing.BarcodeFormat.CODE_39,
+    ZXing.BarcodeFormat.ITF
+  ]);
+  return new ZXing.BrowserMultiFormatReader(hints, 150);
+}
 async function openScan(target) {
   if (typeof ZXing === 'undefined') return toast('Библиотека сканера не загрузилась');
   camTarget = target || 'add';
@@ -234,12 +247,12 @@ async function openScan(target) {
   openCam('Штрих-код', false);
   setCamStatus('Запускаю камеру…');
   try {
-    camReader = new ZXing.BrowserMultiFormatReader();
+    camReader = makeBarcodeReader();
     const video = document.getElementById('camVideo');
     camControls = await camReader.decodeFromConstraints(
-      { video: { facingMode: 'environment' } }, video,
-      (result) => { if (result) onBarcode(result.getText()); });
-    setCamStatus('Наведи рамку на штрих-код');
+      { video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } },
+      video, (result) => { if (result) onBarcode(result.getText()); });
+    setCamStatus('Держи штрих-код горизонтально в рамке, поближе');
   } catch (e) { setCamStatus('Камера недоступна: ' + e.message + '. Можно выбрать фото из галереи.'); }
 }
 async function onBarcode(code) {
@@ -320,9 +333,9 @@ function onPhotoFile(ev) {
   const file = ev.target.files[0]; if (!file) return;
   const url = URL.createObjectURL(file);
   if (camMode === 'barcode') {
-    const rdr = new ZXing.BrowserMultiFormatReader();
+    const rdr = makeBarcodeReader();
     rdr.decodeFromImageUrl(url).then(res => onBarcode(res.getText()))
-      .catch(() => setCamStatus('На фото не найден штрих-код. Сфоткай чётче.'));
+      .catch(() => setCamStatus('На фото не найден штрих-код. Сфоткай чётче и горизонтально.'));
   } else {
     const img = new Image();
     img.onload = () => { const c = document.getElementById('camCanvas'); c.width = img.width; c.height = img.height; c.getContext('2d').drawImage(img, 0, 0); runLabelOCR(c); };

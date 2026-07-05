@@ -1,6 +1,6 @@
 /* Service worker — кэширует приложение для офлайн-работы.
    Данные пользователя тут не хранятся (они в localStorage), только сами файлы. */
-const CACHE = 'pitanie-v13';
+const CACHE = 'pitanie-v14';
 const ASSETS = [
   './', './index.html', './app.js', './engine.js', './foods.js', './exercises.js', './musclemap.js',
   './vendor/zxing.min.js', './vendor/tesseract.min.js',
