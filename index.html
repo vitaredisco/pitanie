@@ -227,9 +227,13 @@
     <h1>Можно ли съесть?</h1>
     <p class="sub">Прикинь блюдо — приложение скажет, влезает ли оно в остаток дня и что перебирается.</p>
     <div class="card">
-      <label>Что хочешь съесть? (поиск или вручную)</label>
+      <label>Что хочешь съесть? (поиск, штрих-код, этикетка или вручную)</label>
       <input id="advSearch" placeholder="торт, шоколад…" oninput="advSearchFood()">
       <div id="advRes" class="search-res"></div>
+      <div class="row" style="gap:10px; margin-top:10px">
+        <button class="ghost" style="flex:1" onclick="openScan('advisor')">📷 Штрих-код</button>
+        <button class="ghost" style="flex:1" onclick="openLabel('advisor')">🏷️ Этикетка</button>
+      </div>
       <div class="grid2" style="margin-top:10px">
         <div><label>Порция, г</label><input id="advG" type="number" inputmode="decimal" placeholder="120" oninput="advScale()"></div>
         <div><label>Ккал (на 100 г)</label><input id="advK" type="number" inputmode="decimal" oninput="advScale()"></div>

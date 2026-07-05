@@ -210,7 +210,7 @@ function saveCustom() {
 }
 
 /* ---- КАМЕРА: ШТРИХ-КОД (Open Food Facts) и ЭТИКЕТКА (OCR) ---- */
-let camReader = null, camControls = null, camStream = null, camMode = null;
+let camReader = null, camControls = null, camStream = null, camMode = null, camTarget = 'add';
 
 function openCam(title, shotBtn) {
   document.getElementById('camTitle').textContent = title;
@@ -227,8 +227,9 @@ function stopCam() {
 }
 function closeCam() { stopCam(); document.getElementById('camModal').classList.add('hidden'); camMode = null; }
 
-async function openScan() {
+async function openScan(target) {
   if (typeof ZXing === 'undefined') return toast('Библиотека сканера не загрузилась');
+  camTarget = target || 'add';
   camMode = 'barcode';
   openCam('Штрих-код', false);
   setCamStatus('Запускаю камеру…');
@@ -258,24 +259,47 @@ async function onBarcode(code) {
   } catch (e) {
     setCamStatus('Этого штрих-кода нет в базе. Введи вручную или наведи ещё раз.');
     if (camMode === 'barcode' && !document.getElementById('camModal').classList.contains('hidden')) {
-      setTimeout(() => { if (camMode === 'barcode') openScan(); }, 2500);
+      setTimeout(() => { if (camMode === 'barcode') openScan(camTarget); }, 2500);
     }
     return false;
   }
 }
 function fillFromNutriments(name, n, tag) {
+  const kcal = Math.round(n['energy-kcal_100g'] || 0);
+  const p = r1(n['proteins_100g'] || 0), fat = r1(n['fat_100g'] || 0), carb = r1(n['carbohydrates_100g'] || 0);
+  if (camTarget === 'advisor') {   // экран «Совет» — можно ли съесть
+    go('advisor');
+    if (name) set('advSearch', name);
+    set('advK', kcal); set('advF', fat); set('advC', carb);
+    document.getElementById('advG').focus();  // осталось указать порцию
+    return;
+  }
   go('add');
   if (name) set('mName', name);
-  set('mK', Math.round(n['energy-kcal_100g'] || 0));
-  set('mP', r1(n['proteins_100g'] || 0));
-  set('mF', r1(n['fat_100g'] || 0));
-  set('mC', r1(n['carbohydrates_100g'] || 0));
+  set('mK', kcal); set('mP', p); set('mF', fat); set('mC', carb);
   document.getElementById('manualTitle').textContent = tag + ': ' + (name || 'проверь цифры');
   document.getElementById('mGrams').focus();
 }
+function fillFromLabel(x) {
+  if (camTarget === 'advisor') {
+    go('advisor');
+    if (x.kcal != null) set('advK', Math.round(x.kcal));
+    if (x.f != null) set('advF', r1(x.f));
+    if (x.c != null) set('advC', r1(x.c));
+    document.getElementById('advG').focus();
+    return;
+  }
+  go('add');
+  if (x.kcal != null) set('mK', Math.round(x.kcal));
+  if (x.p != null) set('mP', r1(x.p));
+  if (x.f != null) set('mF', r1(x.f));
+  if (x.c != null) set('mC', r1(x.c));
+  document.getElementById('manualTitle').textContent = 'Из этикетки — проверь цифры глазами!';
+}
 
 // ---- ЭТИКЕТКА через OCR (Tesseract) ----
-async function openLabel() {
+async function openLabel(target) {
+  camTarget = target || 'add';
   camMode = 'label';
   openCam('Фото этикетки', true);
   setCamStatus('Наведи на таблицу «пищевая ценность на 100 г» и нажми «Снять»');
@@ -337,12 +361,7 @@ async function runLabelOCR(canvas) {
   try {
     const { data } = await Tesseract.recognize(canvas, 'eng');
     const x = parseLabel(data.text);
-    go('add');
-    if (x.kcal != null) set('mK', Math.round(x.kcal));
-    if (x.p != null) set('mP', r1(x.p));
-    if (x.f != null) set('mF', r1(x.f));
-    if (x.c != null) set('mC', r1(x.c));
-    document.getElementById('manualTitle').textContent = 'Из этикетки — проверь цифры глазами!';
+    fillFromLabel(x);
     closeCam();
     toast(x.kcal != null ? 'Распознал — проверь и поправь' : 'Текст распознан частично, впиши сама');
   } catch (e) { setCamStatus('Не удалось распознать: ' + e.message); }
