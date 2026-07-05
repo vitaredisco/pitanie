@@ -246,7 +246,10 @@
     <h1>Активность</h1>
     <div class="card">
       <label>Шаги за день</label>
-      <input id="aSteps" type="number" inputmode="numeric" placeholder="0" onchange="saveActivity()">
+      <div class="row" style="gap:10px">
+        <input id="aSteps" type="number" inputmode="numeric" placeholder="напр. 8000" oninput="stepsHint()">
+        <button onclick="saveActivity()">Записать</button>
+      </div>
       <p class="sub" id="stepsKcalHint">—</p>
       <div class="note">На iPhone шаги можно передавать из «Здоровья» одним тапом через «Быстрые команды» — настрою отдельно. Пока вводи вручную.</div>
     </div>
