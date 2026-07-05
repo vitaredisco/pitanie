@@ -1,7 +1,7 @@
 {
-  "name": "Питание — трекер КБЖУ",
-  "short_name": "Питание",
-  "description": "Персональный трекер калорий, макросов и активности",
+  "name": "LifeStyle — питание, тренировки, тело",
+  "short_name": "LifeStyle",
+  "description": "Личный трекер образа жизни: питание, тренировки, тело и вес",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

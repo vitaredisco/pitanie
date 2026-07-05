@@ -718,7 +718,7 @@ function drawWeight(trend) {
 function exportData() {
   const blob = new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-  a.download = 'pitanie-backup-' + todayStr() + '.json'; a.click();
+  a.download = 'lifestyle-backup-' + todayStr() + '.json'; a.click();
   toast('Файл бэкапа сохранён');
 }
 function importData(ev) {
